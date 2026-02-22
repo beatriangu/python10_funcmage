@@ -1,10 +1,4 @@
-📘 README.md — python10_funcmage
 
-Basado en el subject oficial (Lambda Sanctum, Higher Realm, Memory Depths, Ancient Library, Master’s Tower) 
-
-en.subject (1)
-
- pero con tu enfoque arquitectónico.
 
 # 🧙 Python Module 10 — FuncMage  
 ### Mastering Functional Programming in Python
