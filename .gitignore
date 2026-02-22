@@ -4,12 +4,19 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 
 # =========================
 # Virtual environments
 # =========================
 venv/
 .venv/
+env/
+
+# =========================
+# Tools / helper directory
+# =========================
+tools/
 
 # =========================
 # OS / System files
@@ -18,7 +25,7 @@ venv/
 Thumbs.db
 
 # =========================
-# IDE
+# IDE / Editors
 # =========================
 .vscode/
 .idea/
@@ -27,3 +34,4 @@ Thumbs.db
 # Documentation artifacts
 # =========================
 *.pdf
+OWNMAP.md
