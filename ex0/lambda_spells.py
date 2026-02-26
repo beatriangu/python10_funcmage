@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ex0 - lambda_spells.py
-Lambda practice: sorting, filtering, mapping and basic stats.
+Lambda practice: sorting, filtering, mapping and basic stats (Pydantic-free).
 """
 
 from __future__ import annotations
@@ -11,91 +11,110 @@ from typing import Any
 
 def artifact_sorter(artifacts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
-    Return artifacts sorted by (power ASC, name ASC).
+    Sort artifacts by power (descending).
 
-    Each artifact is expected to have:
+    Each artifact:
     - "name": str
     - "power": int
+    - "type": str
     """
     return sorted(
         artifacts,
-        key=lambda artifact: (artifact["power"], artifact["name"]),
+        key=lambda artifact: artifact["power"],
+        reverse=True,
     )
 
 
 def power_filter(
-    artifacts: list[dict[str, Any]],
-    threshold: int,
+    mages: list[dict[str, Any]],
+    min_power: int,
 ) -> list[dict[str, Any]]:
     """
-    Return artifacts with power strictly greater than threshold.
+    Filter mages with power >= min_power.
+
+    Each mage:
+    - "name": str
+    - "power": int
+    - "element": str
     """
     return list(
         filter(
-            lambda artifact: artifact["power"] > threshold,
-            artifacts,
+            lambda mage: mage["power"] >= min_power,
+            mages,
         )
     )
 
 
-def spell_transformer(spell: str) -> str:
+def spell_transformer(spells: list[str]) -> list[str]:
     """
-    Transform spell into a shouted incantation.
-
-    Rule:
-    - strip spaces
-    - uppercase
-    - replace spaces by underscores
-    - append "!"
+    Transform spell names by adding '* ' prefix and ' *' suffix.
     """
-    cleaned = spell.strip().upper()
-    return cleaned.replace(" ", "_") + "!"
+    return list(
+        map(
+            lambda spell: f"* {spell} *",
+            spells,
+        )
+    )
 
 
-def mage_stats(powers: list[int]) -> dict[str, float]:
+def mage_stats(mages: list[dict[str, Any]]) -> dict[str, Any]:
     """
-    Return basic stats from a list of powers.
+    Compute power stats from a list of mages.
 
-    Keys:
-    - "min"
-    - "max"
-    - "avg"
+    Returns:
+    - "max_power": int
+    - "min_power": int
+    - "avg_power": float (rounded to 2 decimals)
     """
-    if not powers:
-        return {"min": 0.0, "max": 0.0, "avg": 0.0}
+    if not mages:
+        return {"max_power": 0, "min_power": 0, "avg_power": 0.0}
 
-    total = sum(powers)
+    max_power = max(mages, key=lambda mage: mage["power"])["power"]
+    min_power = min(mages, key=lambda mage: mage["power"])["power"]
+    total_power = sum(map(lambda mage: mage["power"], mages))
+    avg_power = round(total_power / len(mages), 2)
+
     return {
-        "min": float(min(powers)),
-        "max": float(max(powers)),
-        "avg": float(total / len(powers)),
+        "max_power": max_power,
+        "min_power": min_power,
+        "avg_power": avg_power,
     }
 
 
 def main() -> None:
     artifacts = [
-        {"name": "Orb of Insight", "power": 7},
-        {"name": "Wand of Sparks", "power": 3},
-        {"name": "Cloak of Shadows", "power": 5},
-        {"name": "Amulet of Dawn", "power": 5},
+        {"name": "Fire Staff", "power": 92, "type": "weapon"},
+        {"name": "Crystal Orb", "power": 85, "type": "relic"},
+        {"name": "Shadow Cloak", "power": 40, "type": "armor"},
     ]
 
-    print("=== Lambda Sanctum ===")
+    mages = [
+        {"name": "Astra", "power": 9, "element": "fire"},
+        {"name": "Orion", "power": 5, "element": "air"},
+        {"name": "Lyra", "power": 2, "element": "water"},
+    ]
 
-    print("\nSorted artifacts:")
-    for artifact in artifact_sorter(artifacts):
-        print(artifact)
+    spells = ["fireball", "heal", "shield"]
 
-    print("\nFiltered artifacts (power > 4):")
-    for artifact in power_filter(artifacts, 4):
-        print(artifact)
+    print("Testing artifact sorter...")
+    sorted_artifacts = artifact_sorter(artifacts)
+    if len(sorted_artifacts) >= 2:
+        first = sorted_artifacts[0]
+        second = sorted_artifacts[1]
+        print(
+            f"{first['name']} ({first['power']} power) comes before "
+            f"{second['name']} ({second['power']} power)"
+        )
 
-    print("\nTransformed spell:")
-    print(spell_transformer("fire ball"))
+    print("Testing spell transformer...")
+    print(" ".join(spell_transformer(spells)))
 
-    print("\nMage stats:")
-    powers = [artifact["power"] for artifact in artifacts]
-    print(mage_stats(powers))
+    print("Testing power filter...")
+    filtered = power_filter(mages, 5)
+    print([mage["name"] for mage in filtered])
+
+    print("Testing mage stats...")
+    print(mage_stats(mages))
 
 
 if __name__ == "__main__":

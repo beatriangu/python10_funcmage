@@ -1,146 +1,125 @@
-# 🧙‍♀️ FuncMage — MAP
-## Programación funcional en Python
+# 🧙‍♀️ FuncMage — MAP  
+## Functional Programming in Python
 
 ---
 
-## 1. Objetivo del módulo
+## 🎯 Module Objective
 
-Este módulo profundiza en los fundamentos de la programación funcional
-en Python.
+This module explores how **functions become architectural tools**, not just executable blocks.
 
-El objetivo no es escribir código “ingenioso”, sino comprender cómo:
+The goal is not clever syntax.
 
-- Las funciones pueden componerse.
-- El comportamiento puede construirse dinámicamente.
-- El estado puede mantenerse de forma controlada.
-- Las responsabilidades pueden separarse mediante decoradores.
+It is to understand that:
 
-Se trabaja una transición clara desde un enfoque imperativo
-hacia un diseño más declarativo y composable.
+- Functions are first-class objects.
+- Behavior can be composed dynamically.
+- State can live inside closures.
+- Cross-cutting concerns can be abstracted with decorators.
 
----
+This marks a transition from:
 
-## 2. Conceptos clave trabajados
-
-- Funciones como objetos de primera clase.
-- Expresiones lambda y operaciones funcionales básicas.
-- Funciones de orden superior (reciben y devuelven funciones).
-- Closures y alcance léxico.
-- Uso de `nonlocal` para modificar variables del cierre.
-- Herramientas de `functools`:
-  - `reduce`
-  - `partial`
-  - `lru_cache`
-  - `singledispatch`
-- Decoradores simples y parametrizados.
-- Preservación de metadatos con `functools.wraps`.
-- Separación de responsabilidades mediante decoradores.
+> Imperative execution  
+to  
+> Declarative composition
 
 ---
 
-## 3. Desglose por ejercicios
-
-### ex0 — Lambda Sanctum
-
-**Enfoque:** Transformaciones funcionales simples.
-
-Se aplican:
-- Ordenación con clave compuesta.
-- Filtrado por condición.
-- Transformación de cadenas.
-- Cálculo de estadísticas básicas.
-
-**Aprendizaje clave:**
-Expresar transformaciones de datos sin lógica condicional dispersa.
+## 🗺 Conceptual Progression
 
 ---
 
-### ex1 — Higher Realm
+## 📂 Exercise Breakdown
 
-**Enfoque:** Funciones de orden superior.
+### 🔹 ex0 — Lambda Sanctum  
+**Focus:** Data transformation pipelines
 
-Se implementa:
-- Composición de funciones.
-- Amplificación de resultados.
-- Aplicación condicional de comportamiento.
-- Encadenamiento secuencial de funciones.
+- Ordering with `sorted(..., key=lambda ...)`
+- Filtering with `filter(lambda ...)`
+- Mapping with `map(lambda ...)`
+- Aggregation with `max`, `min`, `sum`
 
-**Aprendizaje clave:**
-Construir comportamiento por composición, no por ramificación.
-
----
-
-### ex2 — Memory Depths
-
-**Enfoque:** Closures y estado controlado.
-
-Se desarrollan:
-- Contadores que recuerdan estado.
-- Acumuladores con `nonlocal`.
-- Estructuras mutables capturadas en el cierre.
-
-**Aprendizaje clave:**
-El estado puede existir dentro del cierre sin convertirse en estado global.
+**Key idea:**  
+Express *what* happens to data, not *how* to iterate.
 
 ---
 
-### ex3 — Ancient Library
+### 🔹 ex1 — Higher Realm  
+**Focus:** Higher-order functions
 
-**Enfoque:** Herramientas funcionales estándar.
+- Functions as arguments
+- Sequential function composition
+- Behavior amplification
 
-Se aplican:
-- Reducción con `reduce`.
-- Fijación parcial de argumentos con `partial`.
-- Cacheo transparente con `lru_cache`.
-- Despacho por tipo con `singledispatch`.
-
-**Aprendizaje clave:**
-Reutilizar herramientas del lenguaje para resolver patrones recurrentes.
+**Key idea:**  
+Build logic through composition instead of branching.
 
 ---
 
-### ex4 — Master’s Tower
+### 🔹 ex2 — Memory Depths  
+**Focus:** Closures and controlled state
 
-**Enfoque:** Decoradores completos y reutilizables.
+- Captured variables
+- `nonlocal` modification
+- Encapsulated state without globals
 
-Se implementan:
-- Decorador de medición de tiempo.
-- Decorador parametrizado para validación.
-- Decorador con reintento ante excepciones.
-- Uso de `@staticmethod` en contexto funcional.
-
-**Aprendizaje clave:**
-Separar comportamientos transversales sin contaminar
-la lógica principal de la función.
+**Key idea:**  
+State can exist safely inside a function scope.
 
 ---
 
-## 4. Evolución conceptual
+### 🔹 ex3 — Ancient Library  
+**Focus:** Standard functional tools
 
-Este módulo consolida un cambio de mentalidad:
+- `reduce` for cumulative operations
+- `partial` for argument specialization
+- `lru_cache` for memoization
+- `singledispatch` for type-based dispatch
 
-Antes:
-- Funciones aisladas.
-- Lógica directa.
-- Estado explícito.
-
-Ahora:
-- Composición funcional.
-- Estado encapsulado en closures.
-- Comportamientos añadidos mediante decoradores.
-- Reutilización estructurada con `functools`.
+**Key idea:**  
+Leverage language primitives instead of reinventing patterns.
 
 ---
 
-## 5. Conclusión
+### 🔹 ex4 — Master’s Tower  
+**Focus:** Decorators
 
-La programación funcional en Python no es un estilo alternativo,
-sino una herramienta para:
+- Behavior wrapping
+- Parameterized decorators
+- Retry, timing, validation patterns
+- Metadata preservation with `functools.wraps`
 
-- Reducir complejidad.
-- Aumentar claridad.
-- Separar responsabilidades.
-- Construir comportamiento escalable.
+**Key idea:**  
+Separate cross-cuting concerns from core logic.
 
-El resultado es un código más modular,
-más expresivo y más defendible.
+---
+
+## 🧠 Evolution of Thinking
+
+Before this module:
+
+- Functions were isolated.
+- Logic was linear.
+- State was explicit.
+
+After this module:
+
+- Behavior is composable.
+- State can be encapsulated.
+- Functions can modify other functions.
+- Control flow becomes declarative.
+
+---
+
+## 📌 Core Takeaway
+
+Functional programming in Python is not about purity.
+
+It is about:
+
+- Composability  
+- Predictability  
+- Encapsulation  
+- Separation of concerns  
+
+It reduces control-flow noise  
+and increases architectural clarity.
