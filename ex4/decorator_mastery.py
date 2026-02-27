@@ -1,171 +1,114 @@
 #!/usr/bin/env python3
 """
-ex4 - decorator_mastery.py
-Decorators with wraps, parametrized decorators,
-retries, and static methods.
+decorator_mastery.py
+Exercise 4 - Decorator mastery and class methods.
 """
-
-from __future__ import annotations
 
 import time
 from functools import wraps
-from typing import Any, Callable, TypeVar
-
-F = TypeVar("F", bound=Callable[..., Any])
 
 
-def spell_timer(func: F) -> F:
+def spell_timer(func: callable) -> callable:
     """
-    Decorator that measures execution time of a spell function.
+    Decorator that measures execution time.
+    Prints before and after execution.
     """
 
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def wrapper(*args, **kwargs):
+        print(f"Casting {func.__name__}...")
         start = time.perf_counter()
         result = func(*args, **kwargs)
         end = time.perf_counter()
         elapsed = end - start
-        print(f"{func.__name__} took {elapsed:.6f}s")
+        print(f"Spell completed in {elapsed:.3f} seconds")
         return result
 
-    return wrapper  # type: ignore[return-value]
+    return wrapper
 
 
-def power_validator(min_power: int) -> Callable[[F], F]:
+def power_validator(min_power: int) -> callable:
     """
-    Decorator factory enforcing a minimum power value.
-    Assumes the wrapped function receives 'power'
-    as an int argument.
+    Decorator factory that validates minimum power.
     """
 
-    def decorator(func: F) -> F:
+    def decorator(func: callable) -> callable:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            power = kwargs.get("power")
-
-            if power is None and len(args) >= 1:
-                power = args[-1]
-
-            if not isinstance(power, int):
-                raise ValueError("power must be an int")
-
+        def wrapper(self, spell_name: str, power: int):
             if power < min_power:
-                raise ValueError(
-                    f"power must be >= {min_power}"
-                )
+                return "Insufficient power for this spell"
+            return func(self, spell_name, power)
 
-            return func(*args, **kwargs)
-
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
 
-def retry_spell(retries: int) -> Callable[[F], F]:
+def retry_spell(max_attempts: int) -> callable:
     """
-    Decorator factory that retries a spell function
-    if it raises an exception.
+    Retry decorator.
     """
 
-    def decorator(func: F) -> F:
+    def decorator(func: callable) -> callable:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            last_exc: Exception | None = None
-
-            for _ in range(retries + 1):
+        def wrapper(*args, **kwargs):
+            attempt = 1
+            while attempt <= max_attempts:
                 try:
                     return func(*args, **kwargs)
-                except Exception as exc:
-                    last_exc = exc
+                except Exception:
+                    if attempt < max_attempts:
+                        print(
+                            "Spell failed, retrying... "
+                            f"(attempt {attempt}/{max_attempts})"
+                        )
+                    attempt += 1
+            return (
+                "Spell casting failed after "
+                f"{max_attempts} attempts"
+            )
 
-            if last_exc is not None:
-                raise last_exc
-
-            raise RuntimeError("Retry failed unexpectedly")
-
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
 
 class MageGuild:
-    """Guild utilities for validating mages and casting spells."""
+    """Guild class demonstrating staticmethod and decorators."""
 
     @staticmethod
     def validate_mage_name(name: str) -> bool:
-        """
-        Validate mage name:
-        must be non-empty and alphabetical (spaces allowed).
-        """
-        if not isinstance(name, str):
-            return False
-
         stripped = name.strip()
-
-        if not stripped:
+        if len(stripped) < 3:
             return False
+        for char in stripped:
+            if not (char.isalpha() or char == " "):
+                return False
+        return True
 
-        return all(
-            part.isalpha() for part in stripped.split()
-        )
-
-    @staticmethod
-    @power_validator(5)
-    def cast_spell(
-        mage_name: str,
-        spell_func: Callable[[int], str],
-        power: int,
-    ) -> str:
-        """
-        Cast a spell if mage name is valid
-        and power meets minimum threshold.
-        """
-        if not MageGuild.validate_mage_name(mage_name):
-            raise ValueError("Invalid mage name")
-
-        return spell_func(power)
+    @power_validator(10)
+    def cast_spell(self, spell_name: str, power: int) -> str:
+        return f"Successfully cast {spell_name} with {power} power"
 
 
 def main() -> None:
-    print("=== Master's Tower ===")
+    print("Testing spell timer...")
 
     @spell_timer
-    def fireball(power: int) -> str:
-        return f"Fireball cast with power {power}"
+    def fireball() -> str:
+        time.sleep(0.1)
+        return "Fireball cast!"
 
-    @retry_spell(2)
-    def unstable_spell(power: int) -> str:
-        if power < 3:
-            raise RuntimeError("Spell fizzled!")
-        return (
-            f"Unstable spell succeeded with power {power}"
-        )
+    result = fireball()
+    print("Result:", result)
 
-    print(
-        MageGuild.cast_spell(
-            "Astra Nova",
-            fireball,
-            7,
-        )
-    )
+    print("\nTesting MageGuild...")
+    print(MageGuild.validate_mage_name("Astra"))
+    print(MageGuild.validate_mage_name("X!"))
 
-    try:
-        print(
-            MageGuild.cast_spell(
-                "Astra Nova",
-                fireball,
-                2,
-            )
-        )
-    except ValueError as exc:
-        print("Validation error:", exc)
-
-    try:
-        print(unstable_spell(1))
-    except RuntimeError as exc:
-        print("Retry error:", exc)
-
-    print(unstable_spell(3))
+    guild = MageGuild()
+    print(guild.cast_spell("Lightning", 15))
+    print(guild.cast_spell("Lightning", 5))
 
 
 if __name__ == "__main__":
