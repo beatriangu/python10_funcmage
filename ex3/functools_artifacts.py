@@ -1,98 +1,149 @@
 #!/usr/bin/env python3
 """
-ex3 - functools_artifacts.py
-Functional tools: reduce, partial, lru_cache, singledispatch.
+functools_artifacts.py
+Exercise 3 - Functools treasures (FuncMage).
+
+Demonstrates:
+- functools.reduce with multiple operations
+- functools.partial to create specialized functions
+- functools.lru_cache for memoized fibonacci
+- functools.singledispatch for type-based spell behavior
 """
 
-from __future__ import annotations
-
 from functools import lru_cache, partial, reduce, singledispatch
-from operator import add
-from typing import Any, Callable
+from operator import add, mul
 
 
-def power_reduce(powers: list[int]) -> int:
+def spell_reducer(spells: list[int], operation: str) -> int:
     """
-    Combine a list of power values into a single total using reduce.
+    Reduce spell powers using functools.reduce.
 
-    Returns 0 for an empty list.
+    Supported operations: "add", "multiply", "max", "min"
+    Returns the reduced value.
+
+    For an empty list, returns 0 for "add" and 1 for "multiply".
+    For "max"/"min" on empty list, returns 0.
     """
-    if not powers:
+    if not spells:
+        if operation == "multiply":
+            return 1
         return 0
-    return reduce(add, powers)
+
+    if operation == "add":
+        return reduce(add, spells)
+
+    if operation == "multiply":
+        return reduce(mul, spells)
+
+    if operation == "max":
+        return reduce(lambda a, b: a if a > b else b, spells)
+
+    if operation == "min":
+        return reduce(lambda a, b: a if a < b else b, spells)
+
+    print("Error: unsupported operation.")
+    return 0
 
 
-def spell_partial(
-    spell_func: Callable[[int, int], int],
-    fixed_value: int,
-) -> Callable[[int], int]:
+def partial_enchanter(base_enchantment: callable) -> dict[str, callable]:
     """
-    Freeze the first argument of spell_func using functools.partial.
+    Create specialized enchantments using functools.partial.
 
-    spell_func is expected to be a binary function: (a, b) -> int
-    Returned function becomes unary: (b) -> int
+    base_enchantment must accept: (power, element, target)
+
+    Returns a dict with:
+    - 'fire_enchant'
+    - 'ice_enchant'
+    - 'lightning_enchant'
+
+    Each partial sets power=50 and the respective element.
     """
-    return partial(spell_func, fixed_value)
+    if not callable(base_enchantment):
+        print("Error: partial_enchanter expects a callable.")
+        return {}
+
+    return {
+        "fire_enchant": partial(base_enchantment, 50, "fire"),
+        "ice_enchant": partial(base_enchantment, 50, "ice"),
+        "lightning_enchant": partial(base_enchantment, 50, "lightning"),
+    }
 
 
 @lru_cache(maxsize=None)
-def mana_cache(spell_name: str, base_mana: int) -> int:
+def memoized_fibonacci(n: int) -> int:
     """
-    Cached mana cost computation.
-    Demonstrates lru_cache behavior for repeated calls.
+    Return the nth Fibonacci number using lru_cache for memoization.
+
+    Fibonacci:
+    F(0) = 0
+    F(1) = 1
+    F(n) = F(n-1) + F(n-2)
     """
-    name_weight = len(spell_name)
-    return base_mana + name_weight
+    if n < 0:
+        return 0
+    if n < 2:
+        return n
+    return memoized_fibonacci(n - 1) + memoized_fibonacci(n - 2)
 
 
-@singledispatch
-def artifact_analyzer(value: Any) -> str:
+def spell_dispatcher() -> callable:
     """
-    Analyze an artifact depending on its type.
-    Default implementation for unsupported types.
+    Create and return a single-dispatch spell system.
+
+    Behaviors:
+    - int: damage spell
+    - str: enchantment spell
+    - list: multi-cast spell
     """
-    return "Unknown artifact"
+
+    @singledispatch
+    def dispatch(value):
+        return "Unknown spell type"
+
+    @dispatch.register
+    def _(value: int) -> str:
+        return f"Damage spell deals {value} damage!"
+
+    @dispatch.register
+    def _(value: str) -> str:
+        return f"Enchantment applied: {value}"
+
+    @dispatch.register
+    def _(value: list) -> str:
+        return f"Multi-cast spell: {len(value)} casts -> {value}"
+
+    return dispatch
 
 
-@artifact_analyzer.register
-def _(value: int) -> str:
-    return f"Power level: {value}"
-
-
-@artifact_analyzer.register
-def _(value: str) -> str:
-    return f"Artifact name: {value}"
-
-
-@artifact_analyzer.register
-def _(value: dict) -> str:
-    name = value.get("name", "Unnamed")
-    power = value.get("power", "N/A")
-    return f"Artifact: {name} (power={power})"
+def base_enchantment(power: int, element: str, target: str) -> str:
+    """Example enchantment function used by partial_enchanter."""
+    return f"{element.title()} enchantment ({power}) on {target}"
 
 
 def main() -> None:
-    print("=== Ancient Library ===")
+    print("Testing spell reducer...")
+    spells = [10, 20, 30, 40]
+    print("Sum:", spell_reducer(spells, "add"))
+    print("Product:", spell_reducer(spells, "multiply"))
+    print("Max:", spell_reducer(spells, "max"))
+    print("Min:", spell_reducer(spells, "min"))
 
-    powers = [3, 5, 7]
-    print("power_reduce:", power_reduce(powers))
+    print("\nTesting partial enchanter...")
+    enchants = partial_enchanter(base_enchantment)
+    if enchants:
+        print(enchants["fire_enchant"]("Dragon"))
+        print(enchants["ice_enchant"]("Shield"))
+        print(enchants["lightning_enchant"]("Golem"))
 
-    def add_spell(a: int, b: int) -> int:
-        return a + b
+    print("\nTesting memoized fibonacci...")
+    print("Fib(10):", memoized_fibonacci(10))
+    print("Fib(15):", memoized_fibonacci(15))
 
-    fixed_add = spell_partial(add_spell, 10)
-    print("spell_partial:", fixed_add(5))
-
-    print("mana_cache:", mana_cache("fireball", 10))
-    print("mana_cache (cached):", mana_cache("fireball", 10))
-
-    print("artifact_analyzer int:", artifact_analyzer(7))
-    print("artifact_analyzer str:", artifact_analyzer("Orb of Insight"))
-    print(
-        "artifact_analyzer dict:",
-        artifact_analyzer({"name": "Wand of Sparks", "power": 3}),
-    )
-    print("artifact_analyzer other:", artifact_analyzer([1, 2, 3]))
+    print("\nTesting spell dispatcher...")
+    dispatch = spell_dispatcher()
+    print(dispatch(25))
+    print(dispatch("Flaming"))
+    print(dispatch([5, 10, 15]))
 
 
 if __name__ == "__main__":

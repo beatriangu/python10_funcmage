@@ -1,104 +1,179 @@
 #!/usr/bin/env python3
 """
-ex1 - higher_magic.py
-Higher-order functions and function composition.
+higher_magic.py
+Exercise 1 - Higher-order functions and function composition
+(FuncMage).
+
+This module demonstrates that functions are first-class citizens:
+they can be passed as arguments, returned from other functions,
+and combined to build reusable behavior.
 """
 
-from __future__ import annotations
 
-from typing import Callable
-
-
-def spell_combiner(
-    spell_a: Callable[[int], int],
-    spell_b: Callable[[int], int],
-) -> Callable[[int], int]:
+def spell_combiner(spell1: callable, spell2: callable) -> callable:
     """
-    Combine two spells into one.
-    Applies spell_a, then spell_b to the result.
+    Combine two spells into a single spell.
+
+    The returned function calls both spells using the same arguments
+    and returns a tuple containing both results.
     """
-    def combined(value: int) -> int:
-        return spell_b(spell_a(value))
+    if not callable(spell1) or not callable(spell2):
+        print("Error: spell_combiner expects two callable spells.")
+        return None
+
+    def combined(*args, **kwargs) -> tuple:
+        return (spell1(*args, **kwargs), spell2(*args, **kwargs))
 
     return combined
 
 
-def power_amplifier(
-    factor: int,
-) -> Callable[[Callable[[int], int]], Callable[[int], int]]:
+def power_amplifier(base_spell: callable, multiplier: int) -> callable:
     """
-    Amplify the result of a spell by a given factor.
+    Amplify a spell by multiplying its numeric result.
+
+    Assumes base_spell returns a number.
     """
-    def decorator(
-        spell: Callable[[int], int],
-    ) -> Callable[[int], int]:
-        def amplified(value: int) -> int:
-            return spell(value) * factor
+    if not callable(base_spell):
+        print("Error: power_amplifier expects a callable base_spell.")
+        return None
 
-        return amplified
+    if not isinstance(multiplier, int):
+        print("Error: multiplier must be an int.")
+        return None
 
-    return decorator
+    def amplified(*args, **kwargs):
+        return base_spell(*args, **kwargs) * multiplier
+
+    return amplified
 
 
-def conditional_caster(
-    condition: Callable[[int], bool],
-    spell: Callable[[int], int],
-) -> Callable[[int], int]:
+def conditional_caster(condition: callable, spell: callable) -> callable:
     """
-    Cast spell only if condition is True.
-    Otherwise return original value.
+    Cast a spell only if condition returns True.
+
+    If the condition fails, return the string: "Spell fizzled".
     """
-    def conditional(value: int) -> int:
-        if condition(value):
-            return spell(value)
-        return value
+    if not callable(condition) or not callable(spell):
+        print(
+            "Error: conditional_caster expects callable "
+            "condition and spell."
+        )
+        return None
+
+    def conditional(*args, **kwargs):
+        if condition(*args, **kwargs):
+            return spell(*args, **kwargs)
+        return "Spell fizzled"
 
     return conditional
 
 
-def spell_sequence(
-    spells: list[Callable[[int], int]],
-) -> Callable[[int], int]:
+def spell_sequence(spells: list[callable]) -> callable:
     """
-    Apply a list of spells sequentially.
+    Create a spell sequence.
+
+    Each spell receives the same arguments.
+    Returns a list of all spell results.
     """
-    def composed(value: int) -> int:
-        result = value
+    if not isinstance(spells, list) or not spells:
+        print("Error: spell_sequence expects a non-empty list.")
+        return None
+
+    for spell in spells:
+        if not callable(spell):
+            print("Error: all elements in spells must be callable.")
+            return None
+
+    def sequence(*args, **kwargs) -> list:
+        results = []
         for spell in spells:
-            result = spell(result)
-        return result
+            results.append(spell(*args, **kwargs))
+        return results
 
-    return composed
-
-
-def add_five(value: int) -> int:
-    return value + 5
+    return sequence
 
 
-def double(value: int) -> int:
-    return value * 2
+# -------------------------------------------------------------------
+# Demo spells
+# -------------------------------------------------------------------
 
 
-def greater_than_ten(value: int) -> bool:
-    return value > 10
+def fireball(target: str) -> str:
+    """Return a descriptive fireball action."""
+    return f"Fireball hits {target}"
 
 
-def main() -> None:
-    print("=== Higher Realm ===")
+def heal(target: str) -> str:
+    """Return a descriptive heal action."""
+    return f"Heals {target}"
 
-    combined = spell_combiner(add_five, double)
-    print("Combined spell (3):", combined(3))
 
-    amplified = power_amplifier(3)(add_five)
-    print("Amplified spell (4):", amplified(4))
+def base_damage(amount: int) -> int:
+    """Return the base damage amount."""
+    return amount
 
-    conditional = conditional_caster(greater_than_ten, add_five)
-    print("Conditional spell (8):", conditional(8))
-    print("Conditional spell (12):", conditional(12))
 
-    sequence = spell_sequence([add_five, double, add_five])
-    print("Spell sequence (2):", sequence(2))
+def always_true(*args, **kwargs) -> bool:
+    """Condition that always returns True."""
+    return True
+
+
+def always_false(*args, **kwargs) -> bool:
+    """Condition that always returns False."""
+    return False
+
+
+def cast_spell1(target: str) -> str:
+    """First spell in sequence."""
+    return f"Spell1 casts on {target}"
+
+
+def cast_spell2(target: str) -> str:
+    """Second spell in sequence."""
+    return f"Spell2 casts on {target}"
+
+
+def cast_spell3(target: str) -> str:
+    """Third spell in sequence."""
+    return f"Spell3 casts on {target}"
+
+
+def ft_main() -> None:
+    """Test higher-order magic functions."""
+
+    print("Testing spell combiner...")
+    combined = spell_combiner(fireball, heal)
+    if combined is not None:
+        result = combined("Dragon")
+        print(
+            "Combined spell result:",
+            f"{result[0]}, {result[1]}",
+        )
+
+    print("\nTesting power amplifier...")
+    amplified = power_amplifier(base_damage, 3)
+    if amplified is not None:
+        print(
+            f"Original: {base_damage(10)}, "
+            f"Amplified: {amplified(10)}",
+        )
+
+    print("\nTesting conditional casting...")
+    conditional_ok = conditional_caster(always_true, fireball)
+    if conditional_ok is not None:
+        print("Condition True:", conditional_ok("Dragon"))
+
+    conditional_fail = conditional_caster(always_false, fireball)
+    if conditional_fail is not None:
+        print("Condition False:", conditional_fail("Dragon"))
+
+    print("\nTesting spell sequence...")
+    spells = [cast_spell1, cast_spell2, cast_spell3]
+    sequence = spell_sequence(spells)
+    if sequence is not None:
+        result = sequence("Dragon")
+        print("Spell sequence results:", result)
 
 
 if __name__ == "__main__":
-    main()
+    ft_main()

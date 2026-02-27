@@ -1,103 +1,95 @@
 #!/usr/bin/env python3
 """
-ex2 - scope_mysteries.py
-Closures, lexical scoping, and nonlocal state.
+scope_mysteries.py
+Exercise 2 - Lexical scoping and closures (FuncMage).
 """
 
-from __future__ import annotations
 
-from typing import Callable
-
-
-def mage_counter() -> Callable[[], int]:
+def mage_counter() -> callable:
     """
     Return a function that counts how many times it has been called.
-    Each call increments the internal counter and returns the new value.
+    Each call returns the current count (starting from 1).
     """
     count = 0
 
-    def increment() -> int:
+    def counter():
         nonlocal count
         count += 1
         return count
 
-    return increment
+    return counter
 
 
-def spell_accumulator(start: int) -> Callable[[int], int]:
+def spell_accumulator(initial_power: int) -> callable:
     """
-    Return a function that accumulates spell power over time.
+    Return a function that accumulates power over time.
+    Each call adds the given amount to the total power.
     """
-    total = start
+    total = initial_power
 
-    def add(delta: int) -> int:
+    def accumulate(amount: int):
         nonlocal total
-        total += delta
+        total += amount
         return total
 
-    return add
+    return accumulate
 
 
-def enchantment_factory(element: str) -> Callable[[str], str]:
+def enchantment_factory(enchantment_type: str) -> callable:
     """
-    Return a function that enchants a spell name with a fixed element.
+    Return a function that applies the given enchantment.
+    Format: "enchantment_type item_name"
     """
-    def enchant(spell: str) -> str:
-        return f"{element} {spell}"
+    def enchant(item_name: str):
+        return f"{enchantment_type} {item_name}"
 
     return enchant
 
 
-def memory_vault() -> Callable[[str], int]:
+def memory_vault() -> dict:
     """
-    Return a function that records keys and counts how many times
-    each key has been stored.
+    Return a dictionary with 'store' and 'recall' functions.
+    Uses closure to maintain private memory storage.
     """
-    vault: dict[str, int] = {}
+    memory = {}
 
-    def store(key: str) -> int:
-        vault[key] = vault.get(key, 0) + 1
-        return vault[key]
+    def store(key, value):
+        memory[key] = value
 
-    return store
+    def recall(key):
+        if key in memory:
+            return memory[key]
+        return "Memory not found"
+
+    return {
+        "store": store,
+        "recall": recall,
+    }
 
 
 def main() -> None:
-    print("=== Memory Depths ===")
-
+    print("Testing mage counter...")
     counter = mage_counter()
-    print(
-        "mage_counter:",
-        counter(),
-        counter(),
-        counter(),
-    )
+    print("Call 1:", counter())
+    print("Call 2:", counter())
+    print("Call 3:", counter())
 
+    print("\nTesting spell accumulator...")
     accumulator = spell_accumulator(10)
-    print(
-        "spell_accumulator:",
-        accumulator(5),
-        accumulator(-2),
-        accumulator(7),
-    )
+    print(accumulator(5))
+    print(accumulator(3))
 
-    fire_enchant = enchantment_factory("fire")
-    ice_enchant = enchantment_factory("ice")
-    print(
-        "enchantment_factory:",
-        fire_enchant("ball"),
-        "|",
-        ice_enchant("shield"),
-    )
+    print("\nTesting enchantment factory...")
+    flaming = enchantment_factory("Flaming")
+    frozen = enchantment_factory("Frozen")
+    print(flaming("Sword"))
+    print(frozen("Shield"))
 
+    print("\nTesting memory vault...")
     vault = memory_vault()
-    print(
-        "memory_vault:",
-        vault("rune"),
-        vault("rune"),
-        vault("sigil"),
-        vault("rune"),
-    )
+    vault["store"]("spell", "Fireball")
+    print(vault["recall"]("spell"))
+    print(vault["recall"]("unknown"))
 
 
 if __name__ == "__main__":
